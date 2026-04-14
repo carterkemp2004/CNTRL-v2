@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNTRL Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        :root {
+            --primary-blue: #007bff;
+            --success-green: #28a745;
+            --emergency-red: #dc3545;
+            --lunch-orange: #fd9644;
+            --bg-light: #f8f9fa;
+            --nav-bg: rgba(255, 255, 255, 0.9);
+            --nav-btn-inactive: rgba(225, 232, 237, 0.6);
+            --nav-btn-active: rgba(206, 214, 224, 1);
+            --nav-icon-inactive: #a4b0be;
+            --font-main: 'Inter', sans-serif;
+            
+            --site-1: #0984e3; --site-2: #6c5ce7; --site-3: #00b894;
+            --site-4: #fdcb6e; --site-5: #e17055; --site-6: #fab1a0;
+            --site-7: #fd79a8; --site-8: #a29bfe; --site-9: #00cec9;
+            --site-10: #2d3436; --site-11: #e84393;
+        }
+
+        body { font-family: var(--font-main); background-color: #d1d8e0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #2d3436; }
+
+        .phone-screen {
+            width: 360px; height: 740px; background-color: var(--bg-light);
+            border: 12px solid #1a1a1a; border-radius: 44px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
+        }
+
+        header { padding: 25px 15px 5px; text-align: center; }
+        .logo { font-size: 26px; font-weight: 800; color: var(--primary-blue); margin: 0; letter-spacing: -1.5px; }
+        #liveClock { font-size: 10px; color: #a4b0be; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; font-weight: 700; }
+
+        .content { padding: 0 16px 85px; flex: 1; overflow-y: auto; }
+        .card { background: white; border-radius: 18px; padding: 15px; margin-bottom: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.03); }
+        h2 { font-size: 10px; margin: 0 0 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .row { display: flex; justify-content: space-between; align-items: center; }
+
+        .btn-map { background: white; color: var(--primary-blue); border: 1.5px solid var(--primary-blue); border-radius: 10px; padding: 4px 10px; font-size: 9px; font-weight: 800; cursor: pointer; }
+
+        .schedule-container { height: 185px; overflow: hidden; border: 1px solid #f1f2f6; border-radius: 12px; padding: 5px 2px; }
+        .timeline-grid { display: grid; grid-template-columns: 28px repeat(7, 1fr); gap: 1px; }
+        .time-label { font-size: 6px; font-weight: 800; color: #b2bec3; height: 20px; display: flex; align-items: center; justify-content: flex-end; padding-right: 3px; border-bottom: 1px solid #f1f2f6; }
+        .day-column { display: grid; grid-template-rows: repeat(18, 10px); border-left: 1px solid #f1f2f6; }
+        .slot { border-bottom: 1px dotted #f1f2f6; height: 9px; position: relative; }
+        .job-block { position: absolute; width: 90%; left: 5%; border-radius: 2px; color: white; font-size: 4px; font-weight: 800; display: flex; align-items: center; justify-content: center; z-index: 2; text-align: center; }
+        
+        .site-1 { background: var(--site-1); } .site-2 { background: var(--site-2); } .site-3 { background: var(--site-3); }
+        .site-4 { background: var(--site-4); } .site-5 { background: var(--site-5); } .site-6 { background: var(--site-6); }
+        .site-7 { background: var(--site-7); } .site-8 { background: var(--site-8); } .site-9 { background: var(--site-9); }
+        .site-10 { background: var(--site-10); } .site-11 { background: var(--site-11); }
+        .lunch-block { background: var(--lunch-orange); z-index: 1; opacity: 0.7; }
+
+        .graph-container { display: grid; grid-template-rows: auto 1fr auto; gap: 4px 4px; height: 110px; align-items: end; }
+        .bar-total { font-size: 8px; font-weight: 800; color: #2d3436; text-align: center; }
+        .bar { width: 100%; border-radius: 3px 3px 0 0; transition: height 0.3s ease; }
+        .graph-label { text-align: center; font-size: 8px; font-weight: 800; color: #b2bec3; padding-top: 8px; border-top: 2px solid #f1f2f6; white-space: nowrap; }
+
+        .line-graph-svg { width: 100%; height: 130px; overflow: visible; }
+        .line-dot { fill: var(--success-green); }
+        .line-path { fill: none; stroke: var(--success-green); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .line-val { font-size: 11px; font-weight: 800; fill: #2d3436; text-anchor: middle; }
+
+        .progress-container { position: relative; width: 80px; height: 80px; }
+        .inner-stat-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 100%; }
+        .inner-stat-value { display: block; font-size: 11px; font-weight: 800; color: var(--success-green); line-height: 1; }
+        .inner-stat-label { display: block; font-size: 7px; font-weight: 800; color: #a4b0be; text-transform: uppercase; margin-top: 2px; }
+
+        .job-list-item { display: flex; align-items: center; padding: 12px; background: #fff; border-radius: 12px; margin-bottom: 8px; border: 1px solid #f1f2f6; cursor: pointer; }
+        .job-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px; color: white; font-size: 11px; font-weight: 800; }
+        .btn-back { background: none; border: none; color: var(--primary-blue); font-weight: 800; font-size: 11px; cursor: pointer; padding: 0; margin-bottom: 12px; display: flex; align-items: center; gap: 5px; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f8f9fa; font-size: 12px; font-weight: 600; }
+        .checklist-item input { accent-color: var(--success-green); width: 16px; height: 16px; }
+        .note-box { background: #fff9e6; border-left: 3px solid #f1c40f; padding: 10px; font-size: 11px; color: #5a6263; border-radius: 4px; line-height: 1.4; }
+
+        .pay-summary-big { font-size: 32px; font-weight: 800; color: var(--success-green); letter-spacing: -1px; margin: 2px 0; }
+        .rate-badge { display: inline-block; background: #f1f2f6; color: #7f8c8d; font-size: 9px; font-weight: 800; padding: 4px 10px; border-radius: 20px; margin-bottom: 8px; }
+        .btn-dispute { background: #fff0f0; color: var(--emergency-red); border: none; padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px; }
+
+        nav { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); width: 85%; display: flex; justify-content: space-evenly; padding: 8px 0; background-color: var(--nav-bg); backdrop-filter: blur(15px); border-radius: 22px; border: 1px solid rgba(255, 255, 255, 0.4); z-index: 10; }
+        .nav-btn { background-color: var(--nav-btn-inactive); border: none; border-radius: 12px; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn i { font-size: 16px; color: var(--nav-icon-inactive); }
+        .nav-btn.active { background-color: var(--nav-btn-active); }
+        .nav-btn.active i { color: var(--primary-blue); }
+
+        #mainToggleBtn { width: 130px; height: 50px; border-radius: 12px; border: none; font-weight: 800; color: white; background: linear-gradient(135deg, #2ecc71, #27ae60); cursor: pointer; }
+
+        .job-entry { border-bottom: 1px solid #f1f2f6; padding: 8px 0; }
+        .job-entry:last-child { border-bottom: none; }
+        .job-tag { font-size: 9px; font-weight: 800; color: white; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; display: inline-block; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="editModal" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; justify-content: center; align-items: center;">
+    <div style="background: white; width: 85%; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="font-size: 14px; color: #007bff; margin-bottom: 15px;">Edit Weekly Hours</h2>
+        <div id="modal-inputs" style="max-height: 300px; overflow-y: auto;">
+            </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="closeEditModal()" style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: #eee; font-weight: 800; cursor: pointer;">CANCEL</button>
+            <button onclick="saveEditedHours()" style="flex: 1; padding: 12px; border-radius: 10px; border: none; background: #28a745; color: white; font-weight: 800; cursor: pointer;">SAVE</button>
+        </div>
+    </div>
+</div>
+
+<div class="phone-screen">
+    <header>
+        <h1 class="logo">CNTRL</h1>
+        <div id="liveClock">LOADING...</div>
+    </header>
+
+    <div class="content" id="mainContent">
+        <div id="dashboard-view">
+            <div class="card">
+                <h2>Time Center</h2>
+                <div class="row">
+                    <div class="progress-container">
+                        <svg width="80" height="80" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="44" stroke="#f1f2f6" stroke-width="10" fill="none" />
+                            <circle id="progressCircle" cx="50" cy="50" r="44" stroke="var(--success-green)" stroke-width="10" fill="none" stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round" transform="rotate(-90 50 50)" />
+                        </svg>
+                        <div class="inner-stat-box"><span id="dashCenterHrs" class="inner-stat-value">0H 00M</span><span class="inner-stat-label">TOTAL</span></div>
+                    </div>
+                    <button id="mainToggleBtn">CLOCK IN</button>
+                </div>
+                <div class="row" style="margin-top:12px;">
+                    <div><span style="font-size: 9px; font-weight: 600; color: #95a5a6;">STATUS</span><br><span id="statusLabel" style="font-weight:800; font-size:11px;">CLOCKED OUT</span></div>
+                    <div style="text-align: right;"><span style="font-size: 9px; font-weight: 600; color: #95a5a6;">SESSION</span><br><span id="timerDisplay" style="font-size: 16px; font-weight: 800;">0H 00M 00S</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Today's Jobs</h2>
+                <div id="todays-jobs-container"></div>
+            </div>
+
+            <div class="card">
+                <h2>Weekly Agenda</h2>
+                <div id="agenda-home"></div>
+            </div>
+        </div>
+
+        <div id="time-view" style="display: none;">
+            <div style="font-weight: 800; font-size: 18px; margin-bottom: 12px; color: var(--primary-blue);">Time Analytics</div>
+            <div class="card">
+                <h2>Today's Total</h2>
+                <div class="row">
+                    <div class="progress-container"><svg width="80" height="80" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" stroke="#f1f2f6" stroke-width="10" fill="none" /><circle id="dailyMirrorCircle" cx="50" cy="50" r="44" stroke="var(--success-green)" stroke-width="10" fill="none" stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round" transform="rotate(-90 50 50)" /></svg><div class="inner-stat-box"><span id="timeViewDayHrs" class="inner-stat-value">0H 00M</span><span class="inner-stat-label">TODAY</span></div></div>
+                    <div style="text-align: right;"><span style="font-size: 9px; font-weight: 600; color: #95a5a6;">SESSION</span><br><span id="dailyMirrorDisplay" style="font-size: 20px; font-weight: 800;">0H 00M</span></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="row">
+                    <h2>Weekly Goal (40H)</h2>
+                    <button class="btn-map" onclick="openEditModal()">EDIT</button>
+                </div>
+                <div class="row" style="margin-bottom: 15px;">
+                    <div class="progress-container"><svg width="80" height="80" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" stroke="#f1f2f6" stroke-width="10" fill="none" /><circle id="weeklyGoalCircle" cx="50" cy="50" r="44" stroke="var(--primary-blue)" stroke-width="10" fill="none" stroke-dasharray="276.46" stroke-dashoffset="276.46" stroke-linecap="round" transform="rotate(-90 50 50)" /></svg><div class="inner-stat-box"><span id="weeklyGoalIconText" class="inner-stat-value" style="color: var(--primary-blue);">0H 00M</span><span class="inner-stat-label">WEEK</span></div></div>
+                    <div style="text-align: right;"><span style="font-size: 9px; font-weight: 600; color: #95a5a6;">WEEKLY TOTAL</span><br><span id="weeklyTotalText" style="font-size: 18px; font-weight: 800; color: var(--primary-blue);">0H 00M</span></div>
+                </div>
+                <div class="graph-container" style="grid-template-columns: repeat(7, 1fr);">
+                    <div id="lab-0" class="bar-total">0.0</div><div id="lab-1" class="bar-total">0.0</div><div id="lab-2" class="bar-total">0.0</div><div id="lab-3" class="bar-total">0.0</div><div id="lab-4" class="bar-total">0.0</div><div id="lab-5" class="bar-total">0.0</div><div id="lab-6" class="bar-total">0.0</div>
+                    <div id="bar-0" class="bar" style="background: var(--primary-blue);"></div><div id="bar-1" class="bar" style="background: var(--primary-blue);"></div><div id="bar-2" class="bar" style="background: var(--primary-blue);"></div><div id="bar-3" class="bar" style="background: var(--primary-blue);"></div><div id="bar-4" class="bar" style="background: var(--primary-blue);"></div><div id="bar-5" class="bar" style="background: var(--primary-blue);"></div><div id="bar-6" class="bar" style="background: var(--primary-blue);"></div>
+                    <div class="graph-label">M</div><div class="graph-label">T</div><div class="graph-label">W</div><div class="graph-label">T</div><div class="graph-label">F</div><div class="graph-label">S</div><div class="graph-label">S</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Last 5 Weeks (Hours)</h2>
+                <div class="graph-container" style="grid-template-columns: repeat(5, 1fr); height: 100px; margin-top: 10px;">
+                    <div id="w-lab-4" class="bar-total">0.0</div><div id="w-lab-3" class="bar-total">0.0</div><div id="w-lab-2" class="bar-total">0.0</div><div id="w-lab-1" class="bar-total">0.0</div><div id="w-lab-0" class="bar-total" style="color: var(--primary-blue); font-weight: 800;">0.0</div>
+                    <div id="w-bar-4" class="bar" style="background: #dfe6e9;"></div><div id="w-bar-3" class="bar" style="background: #dfe6e9;"></div><div id="w-bar-2" class="bar" style="background: #dfe6e9;"></div><div id="w-bar-1" class="bar" style="background: #dfe6e9;"></div><div id="w-bar-0" class="bar" style="background: var(--primary-blue);"></div>
+                    <div id="w-date-4" class="graph-label">--/--</div><div id="w-date-3" class="graph-label">--/--</div><div id="w-date-2" class="graph-label">--/--</div><div id="w-date-1" class="graph-label">--/--</div><div id="w-date-0" class="graph-label" style="color: var(--primary-blue); font-weight: 800;">NOW</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="jobsite-view" style="display: none;">
+            <div style="font-weight: 800; font-size: 18px; margin-bottom: 12px; color: var(--primary-blue);">Jobsite Manager</div>
+            <div class="card">
+                <h2>Weekly Schedule</h2>
+                <div id="agenda-jobs"></div>
+            </div>
+            <h2>Active Jobsites</h2>
+            <div id="full-job-list"></div>
+        </div>
+
+        <div id="job-detail-view" style="display: none;">
+            <button class="btn-back" onclick="showView('jobsite-view', 'nav-job')"><i class="fa-solid fa-chevron-left"></i> BACK TO JOBS</button>
+            <div id="detail-card-mount"></div>
+        </div>
+
+        <div id="pay-view" style="display: none;">
+            <div style="font-weight: 800; font-size: 18px; margin-bottom: 12px; color: var(--primary-blue);">Payroll & Earnings</div>
+            <div class="card" style="text-align: center;">
+                <h2>Current Period Earnings</h2>
+                <div class="rate-badge">RATE: $20.00 / HR</div>
+                <div id="estimatedEarnings" class="pay-summary-big">$0.00</div>
+                <div style="font-size: 9px; font-weight: 700; color: #a4b0be; text-transform: uppercase;">Estimated Take-Home (Net)</div>
+            </div>
+
+            <div class="card">
+                <h2>Period Breakdown</h2>
+                <div class="row" style="margin-bottom: 10px;"><span style="font-size: 11px; font-weight: 600;">Regular Hours</span><span id="breakdownReg" style="font-size: 11px; font-weight: 800;">0.0 hrs</span></div>
+                <div class="row" style="margin-bottom: 10px;"><span style="font-size: 11px; font-weight: 600;">Overtime (1.5x)</span><span id="breakdownOT" style="font-size: 11px; font-weight: 800; color: var(--emergency-red);">0.0 hrs</span></div>
+                <div class="row"><span style="font-size: 11px; font-weight: 600;">Reimbursements</span><span style="font-size: 11px; font-weight: 800; color: var(--success-green);">$0.00</span></div>
+                <button class="btn-dispute" onclick="alert('Correction request sent to manager.')">REQUEST PAY CORRECTION</button>
+            </div>
+
+            <div class="card">
+                <h2>Earnings Trend (5 Weeks)</h2>
+                <div style="position: relative; padding: 25px 5px 10px;">
+                    <svg viewBox="0 0 400 130" class="line-graph-svg">
+                        <polyline id="payLine" points="" class="line-path" />
+                        <text id="p-val-4" x="10" y="0" class="line-val">$0</text>
+                        <text id="p-val-3" x="105" y="0" class="line-val">$0</text>
+                        <text id="p-val-2" x="200" y="0" class="line-val">$0</text>
+                        <text id="p-val-1" x="295" y="0" class="line-val">$0</text>
+                        <text id="p-val-0" x="390" y="0" class="line-val" style="fill: var(--primary-blue);">$0</text>
+                        <circle id="p-dot-4" cx="10" cy="60" r="5" class="line-dot" />
+                        <circle id="p-dot-3" cx="105" cy="60" r="5" class="line-dot" />
+                        <circle id="p-dot-2" cx="200" cy="60" r="5" class="line-dot" />
+                        <circle id="p-dot-1" cx="295" cy="60" r="5" class="line-dot" />
+                        <circle id="p-dot-0" cx="390" cy="60" r="6" fill="var(--primary-blue)" />
+                    </svg>
+                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span id="p-date-4" class="graph-label">--/--</span>
+                        <span id="p-date-3" class="graph-label">--/--</span>
+                        <span id="p-date-2" class="graph-label">--/--</span>
+                        <span id="p-date-1" class="graph-label">--/--</span>
+                        <span id="p-date-0" class="graph-label" style="color: var(--primary-blue); font-weight: 800;">NOW</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav>
+        <button id="nav-dash" class="nav-btn active" onclick="showView('dashboard-view', 'nav-dash')"><i class="fa-solid fa-house-chimney"></i></button>
+        <button id="nav-time" class="nav-btn" onclick="showView('time-view', 'nav-time')"><i class="fa-solid fa-stopwatch-20"></i></button>
+        <button id="nav-job" class="nav-btn" onclick="showView('jobsite-view', 'nav-job')"><i class="fa-solid fa-map-location-dot"></i></button>
+        <button id="nav-pay" class="nav-btn" onclick="showView('pay-view', 'nav-pay')"><i class="fa-solid fa-money-check-dollar"></i></button>
+    </nav>
+</div>
+
+<script>
+    const circ = 276.46;
+    let weekData = JSON.parse(localStorage.getItem('cntrl_week_times_7day')) || [0, 0, 0, 0, 0, 0, 0];
+    let isClockedIn = false;
+    let startTime, elapsedTime = 0, timerInterval;
+    const HOURLY_RATE = 20.00;
+
+    function formatHM(ms) {
+        const totalMin = Math.floor(ms / 60000);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        return `${h}H ${m.toString().padStart(2, '0')}M`;
+    }
+
+    function getMondayLabel(weeksAgo) {
+        let d = new Date();
+        let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
+        let monday = new Date(d.setDate(diff));
+        monday.setDate(monday.getDate() - (weeksAgo * 7));
+        return (monday.getMonth() + 1).toString().padStart(2, '0') + '/' + monday.getDate().toString().padStart(2, '0');
+    }
+
+    function calculatePayFromHrs(hrs) {
+        const reg = Math.min(hrs, 40);
+        const ot = Math.max(0, hrs - 40);
+        return (reg * HOURLY_RATE) + (ot * HOURLY_RATE * 1.5);
+    }
+
+    const jobsList = [
+        { id: 1, name: "Canyon View Pergola", addr: "1234 N Canyon Rd", color: "site-1", note: "Customer wants extra sealant on north-facing beams.", tasks: ["Sand surface", "Stain coat 1", "Stain coat 2", "Seal end-caps"] },
+        { id: 2, name: "River Park Deck", addr: "567 South St", color: "site-2", note: "Avoid parking on the grass. Use the paved driveway.", tasks: ["Power wash", "Reset loose screws", "Apply cedar tone"] },
+        { id: 3, name: "Hilltop Gazebo", addr: "890 Skyline Dr", color: "site-3", note: "Gate code is 4455.", tasks: ["Strip old finish", "Detail sand rails", "Base coat"] },
+        { id: 4, name: "Oakwood Fence", addr: "221 B Baker St", color: "site-4", note: "Keep side gate closed for the dog.", tasks: ["Mask neighbors", "Spray primary side"] },
+        { id: 5, name: "Summit Lodge", addr: "100 Peak Way", color: "site-5", note: "Check in at main office before starting.", tasks: ["Inspect rafters", "Spot stain knots"] },
+        { id: 6, name: "Valley Bridge", addr: "44 Lowland Ave", color: "site-6", note: "Watch for pedestrians/hikers.", tasks: ["Wipe handrails", "Stain underside"] },
+        { id: 7, name: "Pinecrest Arbor", addr: "77 Forest Ln", color: "site-7", note: "Needs high-UV protection oil.", tasks: ["Clean base", "Apply UV-Oil"] },
+        { id: 8, name: "Meadow Railings", addr: "12 Green Field", color: "site-8", note: "Bring 3 extra tarps.", tasks: ["Prep wood caps", "Apply dark walnut"] },
+        { id: 9, name: "Urban Patio", addr: "99 Metro Blvd", color: "site-9", note: "Job is in a shaded area.", tasks: ["Pressure wash", "Seal joints"] },
+        { id: 10, name: "Lakeside Dock", addr: "5 Pier Road", color: "site-10", note: "Marine-grade stain only.", tasks: ["Sand floorboards", "Apply Marine Seal"] },
+        { id: 11, name: "Ridge Staircase", addr: "33 Cliffside", color: "site-11", note: "Safety harness required.", tasks: ["Tighten brackets", "Stain steps"] }
+    ];
+
+    const weeklySchedule = [[1, 2], [3, 9], [4, 5, 6], [7, 10], [11, 8], [], []];
+
+    const agendaHTML = `
+        <div class="schedule-container"><div class="timeline-grid">
+            <div><div class="time-label">8A</div><div class="time-label">9A</div><div class="time-label">10A</div><div class="time-label">11A</div><div class="time-label">12P</div><div class="time-label">1P</div><div class="time-label">2P</div><div class="time-label">3P</div><div class="time-label">4P</div></div>
+            <div class="day-column"><div class="slot"><div class="job-block site-1" style="height:30px;">SITE 1</div></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block lunch-block" style="height:10px;">LUNCH</div></div><div class="slot"></div><div class="slot"><div class="job-block site-2" style="height:20px;">SITE 2</div></div></div>
+            <div class="day-column"><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block site-3" style="height:40px;">SITE 3</div></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block lunch-block" style="height:10px;">LUNCH</div></div><div class="slot"></div><div class="slot"><div class="job-block site-9" style="height:20px;">SITE 9</div></div></div>
+            <div class="day-column"><div class="slot"><div class="job-block site-4" style="height:20px;">SITE 4</div></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block site-5" style="height:20px;">SITE 5</div></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block lunch-block" style="height:10px;">LUNCH</div></div><div class="slot"></div><div class="slot"><div class="job-block site-6" style="height:30px;">SITE 6</div></div></div>
+            <div class="day-column"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block site-7" style="height:20px;">SITE 7</div></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block lunch-block" style="height:10px;">LUNCH</div></div><div class="slot"></div><div class="slot"><div class="job-block site-10" style="height:20px;">SITE 10</div></div></div>
+            <div class="day-column"><div class="slot"><div class="job-block site-11" style="height:20px;">SITE 11</div></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"><div class="job-block site-8" style="height:20px;">SITE 8</div></div><div class="slot"></div><div class="slot"><div class="job-block lunch-block" style="height:10px;">LUNCH</div></div></div>
+            <div class="day-column"></div><div class="day-column"></div>
+        </div></div><div style="display:flex; justify-content:space-between; margin-top:6px; font-size:7px; font-weight:800; color:#b2bec3; padding-left:33px;"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>`;
+
+    function showView(viewId, navId) {
+        ['dashboard-view', 'time-view', 'jobsite-view', 'job-detail-view', 'pay-view'].forEach(v => document.getElementById(v).style.display = 'none');
+        document.getElementById(viewId).style.display = 'block';
+        if(navId) { document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active')); document.getElementById(navId).classList.add('active'); }
+        updateUI();
+    }
+
+    function openJobDetail(id) {
+        const job = jobsList.find(j => j.id === id);
+        const mount = document.getElementById('detail-card-mount');
+        mount.innerHTML = `
+            <div class="card"><div class="row"><h2 style="color: var(--${job.color}); font-size: 14px;">${job.name}</h2><button class="btn-map" onclick="openMap('${job.addr}')">MAP IT</button></div><p style="font-size:11px; color:#7f8c8d; margin-top:5px;">${job.addr}</p></div>
+            <div class="card"><h2>Action Checklist</h2>${job.tasks.map(t => `<div class="checklist-item"><input type="checkbox"> <span>${t}</span></div>`).join('')}</div>
+            <div class="card"><h2>Special Notes</h2><div class="note-box">${job.note}</div></div>`;
+        showView('job-detail-view');
+    }
+
+    function updateTodayJobs() {
+        let rawDay = new Date().getDay();
+        const todayIdx = rawDay === 0 ? 6 : rawDay - 1;
+        const jobIds = weeklySchedule[todayIdx];
+        const container = document.getElementById('todays-jobs-container');
+        if (jobIds.length === 0) { container.innerHTML = `<p style="font-size: 11px; color: #7f8c8d; text-align: center; margin: 10px 0;">No jobs scheduled for today.</p>`; return; }
+        container.innerHTML = jobIds.map(id => {
+            const job = jobsList.find(j => j.id === id);
+            return `<div class="job-entry"><div class="row"><div><span class="job-tag" style="background: var(--${job.color})">JOBSITE ${job.id}</span><div style="font-weight: 800; font-size: 13px; color: #2d3436;">${job.name}</div><div style="color: #7f8c8d; font-size: 10px;">${job.addr}</div></div><button class="btn-map" onclick="openMap('${job.addr}')">MAP IT</button></div></div>`;
+        }).join('');
+    }
+
+    function updateUI() {
+        let rawDay = new Date().getDay();
+        const todayIdx = rawDay === 0 ? 6 : rawDay - 1;
+        const currentDayMs = weekData[todayIdx] + elapsedTime;
+        let hh = Math.floor(elapsedTime / 3600000), mm = Math.floor((elapsedTime % 3600000) / 60000), ss = Math.floor((elapsedTime % 60000) / 1000);
+        document.getElementById('timerDisplay').innerText = `${hh}H ${mm.toString().padStart(2,'0')}M ${ss.toString().padStart(2,'0')}S`;
+        document.getElementById('dashCenterHrs').innerText = formatHM(currentDayMs);
+        if(document.getElementById('timeViewDayHrs')) {
+            document.getElementById('timeViewDayHrs').innerText = formatHM(currentDayMs);
+            document.getElementById('dailyMirrorDisplay').innerText = formatHM(currentDayMs);
+            document.getElementById('dailyMirrorCircle').style.strokeDashoffset = circ - (Math.min((currentDayMs/3600000) / 8, 1) * circ);
+        }
+        document.getElementById('progressCircle').style.strokeDashoffset = circ - (Math.min((currentDayMs/3600000) / 8, 1) * circ);
+        let weeklyTotalMs = weekData.reduce((a, b) => a + b, 0) + elapsedTime;
+        let weeklyHrs = weeklyTotalMs / 3600000;
+        if(document.getElementById('weeklyGoalIconText')) {
+            document.querySelectorAll('#weeklyGoalIconText').forEach(el => el.innerText = formatHM(weeklyTotalMs));
+            document.querySelectorAll('#weeklyTotalText').forEach(el => el.innerText = formatHM(weeklyTotalMs));
+            document.getElementById('weeklyGoalCircle').style.strokeDashoffset = circ - (Math.min(weeklyHrs / 40, 1) * circ);
+        }
+        weekData.forEach((ms, idx) => {
+            let total = (idx === todayIdx) ? (ms + elapsedTime) / 3600000 : ms / 3600000;
+            let bar = document.getElementById(`bar-${idx}`), lab = document.getElementById(`lab-${idx}`);
+            if(bar && lab) { lab.innerText = total.toFixed(1); bar.style.height = Math.min((total / 10) * 100, 100) + "%"; bar.style.background = total > 8 ? "var(--emergency-red)" : "var(--primary-blue)"; }
+        });
+        const pastWeeks = [weeklyHrs, 38.5, 42.2, 35.0, 39.8]; 
+        let points = [];
+        pastWeeks.forEach((hrs, idx) => {
+            const wbar = document.getElementById(`w-bar-${idx}`), wlab = document.getElementById(`w-lab-${idx}`), wdate = document.getElementById(`w-date-${idx}`);
+            if(wbar && wlab) { wlab.innerText = hrs.toFixed(1); wbar.style.height = Math.min((hrs / 50) * 100, 100) + "%"; if(idx !== 0 && wdate) wdate.innerText = getMondayLabel(idx); }
+            const weeklyPay = calculatePayFromHrs(hrs), y = 120 - (Math.min(weeklyPay / 1100, 1) * 90), x = 390 - (idx * 95);
+            points.push(`${x},${y}`);
+            const pdot = document.getElementById(`p-dot-${idx}`), pval = document.getElementById(`p-val-${idx}`), pdate = document.getElementById(`p-date-${idx}`);
+            if(pdot) pdot.setAttribute("cy", y); if(pval) { pval.setAttribute("y", y - 12); pval.textContent = `$${Math.round(weeklyPay)}`; } if(pdate && idx !== 0) pdate.innerText = getMondayLabel(idx);
+        });
+        if(document.getElementById('payLine')) document.getElementById('payLine').setAttribute("points", points.reverse().join(" "));
+        const totalPay = calculatePayFromHrs(weeklyHrs);
+        if(document.getElementById('estimatedEarnings')) {
+            document.getElementById('estimatedEarnings').innerText = `$${totalPay.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('breakdownReg').innerText = `${Math.min(weeklyHrs, 40).toFixed(1)} hrs`;
+            document.getElementById('breakdownOT').innerText = `${Math.max(0, weeklyHrs - 40).toFixed(1)} hrs`;
+        }
+        updateTodayJobs();
+    }
+
+    document.getElementById('mainToggleBtn').onclick = function() {
+        isClockedIn = !isClockedIn;
+        if (isClockedIn) {
+            this.innerText = "CLOCK OUT"; this.style.background = "linear-gradient(135deg, #ff7675, #d63031)";
+            document.getElementById('statusLabel').innerText = "CLOCKED IN";
+            startTime = Date.now(); timerInterval = setInterval(() => { elapsedTime = Date.now() - startTime; updateUI(); }, 1000);
+        } else {
+            this.innerText = "CLOCK IN"; this.style.background = "linear-gradient(135deg, #2ecc71, #27ae60)";
+            document.getElementById('statusLabel').innerText = "CLOCKED OUT";
+            clearInterval(timerInterval); weekData[new Date().getDay() === 0 ? 6 : new Date().getDay()-1] += elapsedTime;
+            elapsedTime = 0; localStorage.setItem('cntrl_week_times_7day', JSON.stringify(weekData)); updateUI();
+        }
+    };
+
+    function init() {
+        document.getElementById('agenda-home').innerHTML = agendaHTML;
+        document.getElementById('agenda-jobs').innerHTML = agendaHTML;
+        document.getElementById('full-job-list').innerHTML = jobsList.map(j => `<div class="job-list-item" onclick="openJobDetail(${j.id})"><div class="job-icon ${j.color}">J${j.id}</div><div><div style="font-size:12px; font-weight:800;">${j.name}</div><div style="font-size:10px; color:#7f8c8d;">${j.addr}</div></div><i class="fa-solid fa-chevron-right" style="margin-left:auto; color:#d1d8e0;"></i></div>`).join('');
+        setInterval(() => { const now = new Date(); document.getElementById('liveClock').innerText = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }).toUpperCase().replace(',', ' •'); }, 1000);
+        updateUI();
+    }
+    function openMap(addr) { window.open(`https://maps.google.com/?q=${encodeURIComponent(addr)}`, '_blank'); }
+    init();
+
+    function openEditModal() {
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const container = document.getElementById('modal-inputs');
+    
+    // Generates 7 inputs, converting your milliseconds (weekData) into decimal hours
+    container.innerHTML = dayNames.map((day, i) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 700; color: #7f8c8d;">${day}</label>
+            <input type="number" step="0.1" id="edit-day-${i}" 
+                   style="width: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 8px; text-align: center; font-weight: 800;" 
+                   value="${(weekData[i] / 3600000).toFixed(1)}">
+        </div>
+    `).join('');
+    
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+function saveEditedHours() {
+    for (let i = 0; i < 7; i++) {
+        const val = parseFloat(document.getElementById(`edit-day-${i}`).value) || 0;
+        // Converts back to milliseconds for your internal calculations
+        weekData[i] = val * 3600000;
+    }
+    
+    localStorage.setItem('cntrl_week_times_7day', JSON.stringify(weekData));
+    
+    // Runs your existing UI update function to refresh the bars and totals
+    if (typeof updateUI === "function") updateUI();
+    
+    closeEditModal();
+}
+
+
+
+</script>
+</body>
+</html>
